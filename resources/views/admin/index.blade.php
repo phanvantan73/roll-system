@@ -94,8 +94,9 @@
             @if (Route::has('login'))
                 <div class="top-right links">
                     @auth
-                        <a href="{{ url('/') }}">Trang chủ || </a>
-                        <a href="{{ url('/result') }}">Kết quả</a>
+                        <a href="{{ route('dashboard') }}">Trang chủ || </a>
+                        <a href="{{ url('/get-all-student') }}">Sinh viên || </a>
+                        <a href="{{ url('/get-all') }}">Tổng quan </a>
                     @else
                         <a href="{{ route('login') }}">Đăng nhập ||</a>
 
