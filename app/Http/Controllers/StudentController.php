@@ -20,7 +20,7 @@ class StudentController extends Controller
         $date = Carbon::today()->format('d');
         $defaultSubjectId = Subject::orderBy('created_at')->first()->id;
         $defaultSubjectName = Subject::orderBy('created_at')->first()->name;
-        $defaultDay = $year . '-' . $month. '-' . ($date < 10 ? '0' : '') . $date;
+        $defaultDay = $year . '-' . $month. '-' . $date;
         $data = $this->getData($student, $defaultSubjectId, $defaultDay);
         $defaultDay = Carbon::create($defaultDay)->format('d-m-Y');
 

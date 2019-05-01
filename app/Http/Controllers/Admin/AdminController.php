@@ -24,36 +24,43 @@ class AdminController extends Controller
         $requestDay = Carbon::now();
         $day = $requestDay->dayOfWeek;
         $requestDay = $requestDay->format('d-m-Y');
-        $contents = File::get(public_path('file/' . Carbon::now()->toDateString() . '.txt'));
-        $contents = explode(PHP_EOL, $contents);
-        $subjectsInDay = Subject::where('learn_time', $day)->get();
+        $path = public_path('file/' . Carbon::now()->toDateString() . '.txt');
         $data = [];
-        for ($i = 0; $i < count($contents) - 1; $i++) {
-            $content = explode(',', $contents[$i]);
-            $student = Student::getStudentFromMssv($content[0]);
-            if ($student) {
-                $rollTime = $content[1];
-                $data[$i] = [
-                    'student' => $student,
-                    'rollTime' => $rollTime,
-                ];
-                foreach ($subjectsInDay as $key => $subject) {
-                    $check = DB::table('student_subject')->where('student_id', $student->id)->where('subject_id', $subject->id)
-                        ->where('created_at', Carbon::today()->toDateString() . ' ' . $rollTime)->get();
-                    
-                    if ($rollTime >= $subject->start_time && $rollTime <= $subject->end_time ) {
-                        if (!count($check)) {
-                            $student->subjects()->attach($subject->id, [
-                                'created_at' => Carbon::today()->toDateString() . ' ' . $rollTime,
-                                'status' => 1,
-                            ]);
+        $errors = [];
+        if (File::exists($path)) {
+            $contents = File::get($path);
+            $contents = explode(PHP_EOL, $contents);
+            $subjectsInDay = Subject::where('learn_time', $day)->get();
+            for ($i = 0; $i < count($contents) - 1; $i++) {
+                $content = explode(',', $contents[$i]);
+                $student = Student::getStudentFromMssv($content[0]);
+                if ($student) {
+                    $rollTime = $content[1];
+                    $data[$i] = [
+                        'student' => $student,
+                        'rollTime' => $rollTime,
+                    ];
+                    foreach ($subjectsInDay as $key => $subject) {
+                        $check = DB::table('student_subject')->where('student_id', $student->id)->where('subject_id', $subject->id)
+                            ->where('created_at', Carbon::today()->toDateString() . ' ' . $rollTime)->get();
+                        
+                        if ($rollTime >= $subject->start_time && $rollTime <= $subject->end_time ) {
+                            if (!count($check)) {
+                                $student->subjects()->attach($subject->id, [
+                                    'created_at' => Carbon::today()->toDateString() . ' ' . $rollTime,
+                                    'status' => 1,
+                                ]);
+                            }
                         }
                     }
                 }
             }
+        } else {
+            $errors['error'] = 'Camera chưa cập nhật kết quả!';
         }
         
-        return view('sumary', compact('requestDay', 'data'));
+        
+        return view('sumary', compact('requestDay', 'data', 'errors'));
 
     }
 
