@@ -42,14 +42,24 @@ class AdminController extends Controller
                     ];
                     foreach ($subjectsInDay as $key => $subject) {
                         $check = DB::table('student_subject')->where('student_id', $student->id)->where('subject_id', $subject->id)
-                            ->where('created_at', Carbon::today()->toDateString() . ' ' . $rollTime)->get();
+                            ->whereDate('created_at', Carbon::today()->toDateString())->oldest()->first();
                         
                         if ($rollTime >= $subject->start_time && $rollTime <= $subject->end_time ) {
-                            if (!count($check)) {
+
+                            if (!$check) {
                                 $student->subjects()->attach($subject->id, [
                                     'created_at' => Carbon::today()->toDateString() . ' ' . $rollTime,
                                     'status' => 1,
                                 ]);
+                            } else {
+                                
+                                if ($rollTime < Carbon::create($check->created_at)->format('H:i:s')) {
+                                    DB::table('student_subject')->delete($check->id);
+                                    $student->subjects()->attach($subject->id, [
+                                        'created_at' => Carbon::today()->toDateString() . ' ' . $rollTime,
+                                        'status' => 1,
+                                    ]);
+                                }
                             }
                         }
                     }
